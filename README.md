@@ -35,16 +35,16 @@ weatherData/
 
 Each CSV file contains hourly automated surface observation (ASOS) data for its respective station. All files share the same schema:
 
-| Column               | Description                           | Units |
-| -------------------- | ------------------------------------- | ----- |
-| `station`            | ASOS station identifier (ICAO)        | –     |
-| `valid`              | Observation timestamp                 | UTC   |
-| `tmpf`               | Air temperature                       | °F    |
-| `dwpf`               | Dew point temperature                 | °F    |
-| `relh`               | Relative humidity                     | %     |
-| `sped`               | Wind speed                            | mph   |
-| `skyl1`              | First reported sky cover layer height | feet  |
-| `peak_wind_gust_mph` | Peak wind gust                        | mph   |
+| Column               | Description                           | Units           |
+| -------------------- | ------------------------------------- | --------------- |
+| `station`            | ASOS station identifier (ICAO)        | –               |
+| `valid`              | Observation timestamp                 | America/Chicago |
+| `tmpf`               | Air temperature                       | °F              |
+| `dwpf`               | Dew point temperature                 | °F              |
+| `relh`               | Relative humidity                     | %               |
+| `sped`               | Wind speed                            | mph             |
+| `skyl1`              | First reported sky cover layer height | feet            |
+| `peak_wind_gust_mph` | Peak wind gust                        | mph             |
 
 > **Missing data** is encoded as `M` throughout all files and must be handled before analysis.
 
