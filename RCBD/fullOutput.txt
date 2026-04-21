@@ -1,0 +1,175 @@
+1. Load Data
+Total observations loaded: 149951
+Stations: AIA, BFF, BIE, BTA, GRI, HSI, LNK, OFK, OMA
+
+2. Filter to 2025, Drop Missing relh / tmpf
+# A tibble: 9 × 2
+  station     n
+  <chr>   <int>
+1 AIA     10721
+2 BFF      9973
+3 BIE     21453
+4 BTA     26006
+5 GRI     10518
+6 HSI     10326
+7 LNK     10525
+8 OFK     10894
+9 OMA     10046
+
+3. Assign Temperature Bins (Blocks)
+Hourly observations per temperature bin:
+ 1_Freezing (<25F)    2_Cold (25-44F)    3_Cool (45-59F)    4_Mild (60-74F) 5_Warm/Hot (>=75F)
+             16490              27764              26453              30560              19195
+
+4. Compute Experimental Units (mean relh per station × temp_bin)
+Experimental units (should be 45 rows — 9 stations × 5 bins):
+# A tibble: 45 × 4
+   station temp_bin           mean_relh n_obs
+   <chr>   <fct>                  <dbl> <int>
+ 1 AIA     1_Freezing (<25F)       83.7  1903
+ 2 AIA     2_Cold (25-44F)         78.1  2822
+ 3 AIA     3_Cool (45-59F)         72.2  2711
+ 4 AIA     4_Mild (60-74F)         61.0  2180
+ 5 AIA     5_Warm/Hot (>=75F)      34.8  1105
+ 6 BFF     1_Freezing (<25F)       73.9  1334
+ 7 BFF     2_Cold (25-44F)         68.7  2426
+ 8 BFF     3_Cool (45-59F)         66.2  2550
+ 9 BFF     4_Mild (60-74F)         58.8  2430
+10 BFF     5_Warm/Hot (>=75F)      33.4  1233
+11 BIE     1_Freezing (<25F)       71.2  3049
+12 BIE     2_Cold (25-44F)         71.6  5510
+13 BIE     3_Cool (45-59F)         63.0  4227
+14 BIE     4_Mild (60-74F)         65.7  4505
+15 BIE     5_Warm/Hot (>=75F)      57.8  4162
+16 BTA     1_Freezing (<25F)       70.4  3380
+17 BTA     2_Cold (25-44F)         71.6  5497
+18 BTA     3_Cool (45-59F)         66.3  5619
+19 BTA     4_Mild (60-74F)         70.6  7175
+20 BTA     5_Warm/Hot (>=75F)      60.6  4335
+21 GRI     1_Freezing (<25F)       73.1  1346
+22 GRI     2_Cold (25-44F)         73.0  2330
+23 GRI     3_Cool (45-59F)         70.3  2341
+24 GRI     4_Mild (60-74F)         72.4  2922
+25 GRI     5_Warm/Hot (>=75F)      56.2  1579
+26 HSI     1_Freezing (<25F)       72.5  1291
+27 HSI     2_Cold (25-44F)         71.8  2317
+28 HSI     3_Cool (45-59F)         68.1  2152
+29 HSI     4_Mild (60-74F)         72.2  3020
+30 HSI     5_Warm/Hot (>=75F)      56.9  1546
+31 LNK     1_Freezing (<25F)       69.5  1345
+32 LNK     2_Cold (25-44F)         72.6  2178
+33 LNK     3_Cool (45-59F)         69.7  2308
+34 LNK     4_Mild (60-74F)         71.7  2791
+35 LNK     5_Warm/Hot (>=75F)      58.4  1903
+36 OFK     1_Freezing (<25F)       71.6  1514
+37 OFK     2_Cold (25-44F)         74.1  2492
+38 OFK     3_Cool (45-59F)         71.0  2420
+39 OFK     4_Mild (60-74F)         74.4  2970
+40 OFK     5_Warm/Hot (>=75F)      57.3  1498
+41 OMA     1_Freezing (<25F)       70.3  1328
+42 OMA     2_Cold (25-44F)         74.7  2192
+43 OMA     3_Cool (45-59F)         69.6  2125
+44 OMA     4_Mild (60-74F)         71.2  2567
+45 OMA     5_Warm/Hot (>=75F)      59.1  1834
+All cells have >= 30 observations. No sparsity concerns.
+Design is complete: all 45 cells populated.
+
+5. Descriptive Summary
+Mean relh by station (averaged across all temperature bins):
+# A tibble: 9 × 2
+  station overall_mean_relh
+  <chr>               <dbl>
+1 OFK                  69.7
+2 GRI                  69.0
+3 OMA                  69.0
+4 LNK                  68.4
+5 HSI                  68.3
+6 BTA                  67.9
+7 AIA                  66.0
+8 BIE                  65.9
+9 BFF                  60.2
+Mean relh by temperature bin (averaged across all stations):
+# A tibble: 5 × 2
+  temp_bin           overall_mean_relh
+  <fct>                          <dbl>
+1 1_Freezing (<25F)               72.9
+2 2_Cold (25-44F)                 72.9
+3 3_Cool (45-59F)                 68.5
+4 4_Mild (60-74F)                 68.7
+5 5_Warm/Hot (>=75F)              52.7
+
+
+6. Fit RCBD Model
+            Df Sum Sq Mean Sq F value   Pr(>F)
+station      8  340.1    42.5   1.265    0.296
+temp_bin     4 2508.5   627.1  18.654 5.29e-08 ***
+Residuals   32 1075.8    33.6
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+7. Tukey HSD Post-Hoc on Station Effect
+Fit: aov(formula = mean_relh ~ station + temp_bin, data = units)
+$station
+               diff        lwr       upr     p adj
+BFF-AIA -5.77502765 -17.958173  6.408118 0.8108806
+BIE-AIA -0.09456802 -12.277713 12.088577 1.0000000
+BTA-AIA  1.92672796 -10.256417 14.109873 0.9998074
+GRI-AIA  3.02654122  -9.156604 15.209687 0.9951518
+HSI-AIA  2.33764634  -9.845499 14.520792 0.9992032
+LNK-AIA  2.41224379  -9.770902 14.595389 0.9990012
+OFK-AIA  3.72878634  -8.454359 15.911932 0.9813363
+OMA-AIA  2.99995656  -9.183189 15.183102 0.9954317
+BIE-BFF  5.68045963  -6.502686 17.863605 0.8238756
+BTA-BFF  7.70175561  -4.481390 19.884901 0.4906575
+GRI-BFF  8.80156887  -3.381576 20.984714 0.3179361
+HSI-BFF  8.11267399  -4.070471 20.295819 0.4221407
+LNK-BFF  8.18727145  -3.995874 20.370417 0.4101402
+OFK-BFF  9.50381399  -2.679331 21.686959 0.2294231
+OMA-BFF  8.77498421  -3.408161 20.958130 0.3216571
+BTA-BIE  2.02129598 -10.161849 14.204441 0.9997249
+GRI-BIE  3.12110924  -9.062036 15.304255 0.9940428
+HSI-BIE  2.43221436  -9.750931 14.615360 0.9989405
+LNK-BIE  2.50681182  -9.676334 14.689957 0.9986858
+OFK-BIE  3.82335436  -8.359791 16.006500 0.9782464
+OMA-BIE  3.09452458  -9.088621 15.277670 0.9943731
+GRI-BTA  1.09981325 -11.083332 13.282959 0.9999974
+HSI-BTA  0.41091837 -11.772227 12.594064 1.0000000
+LNK-BTA  0.48551583 -11.697630 12.668661 1.0000000
+OFK-BTA  1.80205838 -10.381087 13.985204 0.9998833
+OMA-BTA  1.07322860 -11.109917 13.256374 0.9999978
+HSI-GRI -0.68889488 -12.872040 11.494250 0.9999999
+LNK-GRI -0.61429742 -12.797443 11.568848 1.0000000
+OFK-GRI  0.70224512 -11.480900 12.885390 0.9999999
+OMA-GRI -0.02658465 -12.209730 12.156561 1.0000000
+LNK-HSI  0.07459746 -12.108548 12.257743 1.0000000
+OFK-HSI  1.39114000 -10.792005 13.574285 0.9999838
+OMA-HSI  0.66231023 -11.520835 12.845456 1.0000000
+OFK-LNK  1.31654255 -10.866603 13.499688 0.9999894
+OMA-LNK  0.58771277 -11.595433 12.770858 1.0000000
+OMA-OFK -0.72882978 -12.911975 11.454316 0.9999999
+Top significant pairwise differences (p < 0.05):
+[1] comparison diff       lwr        upr        p adj
+<0 rows> (or 0-length row.names)
+
+8. Residual Diagnostics
+=== Shapiro-Wilk Test on Residuals ===
+	Shapiro-Wilk normality test
+data:  residuals(rcbd_model)
+W = 0.94086, p-value = 0.02314
+
+9. Interaction Check
+=== Interaction F-Test (station × temp_bin) ===
+Analysis of Variance Table
+Model 1: mean_relh ~ station + temp_bin
+Model 2: mean_relh ~ station * temp_bin
+  Res.Df    RSS Df Sum of Sq   F Pr(>F)
+1     32 1075.8
+2      0    0.0 32    1075.8 NaN    NaN
+No significant interaction (p = NaN ).
+Additive RCBD assumption holds — station main effects are reliable.
+
+10. Non-Parametric Fallback — Friedman Test
+=== Friedman Test (non-parametric RCBD alternative) ===
+	Friedman rank sum test
+data:  friedman_matrix
+Friedman chi-squared = 25.956, df = 4, p-value = 3.23e-05
