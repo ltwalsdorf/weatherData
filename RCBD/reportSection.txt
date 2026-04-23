@@ -1,0 +1,131 @@
+Luke Walsdorf – Experimental Design
+
+
+One of the most difficult things in weather analysis is separating the variable
+that you actually care about from the confounding variables that might be
+affecting it. The purpose of this analysis is to analyze the differences in
+relative humidities of the 9 different airports that we collected data from.
+There are a lot of factors in the location and climate of these 9 locations that
+could have a large impact on relative humidity, including geography, elevation,
+and proximity to water sources. However, the strongest indicator of relative
+humidity is air temperature. The same amount of water vapor produces dramatically
+lower relative humidity in warmer air simply because warm air can hold more
+moisture. If we just compared the average relative humidities of these stations,
+most of the variation will be an effect of the variation in air temperature, not
+the variation in location.
+
+A Randomized Complete Block Design (RCBD) provides a great solution for
+eliminating the effect of this confounding variable in air temperature. By
+grouping our observations into temperature bins and computing a mean relative
+humidity per temperature bin per station, we can hold the air temperature
+consistent when computing the differences in humidity between weather stations.
+This will allow us to fairly compare the relative humidity of these stations
+without the biggest confounding variable.
+
+
+Design:
+
+The table below shows the experimental design. Each cell is one experimental
+unit: the mean relative humidity for a given station within a given temperature
+block.
+
+  Treatment      | Block 1     | Block 2     | Block 3     | Block 4     | Block 5
+  (Station)      | Freezing    | Cold        | Cool        | Mild        | Warm/Hot
+                 | (<25 F)     | (25-44 F)   | (45-59 F)   | (60-74 F)   | (>=75 F)
+  ---------------+-------------+-------------+-------------+-------------+----------
+  AIA (Alliance) |   83.7%     |   78.1%     |   72.2%     |   61.0%     |   34.8%
+  BFF (Scottsblf)|   73.9%     |   68.7%     |   66.2%     |   58.8%     |   33.4%
+  BIE (Beatrice) |   71.2%     |   71.6%     |   63.0%     |   65.7%     |   57.8%
+  BTA (Blair)    |   70.4%     |   71.6%     |   66.3%     |   70.6%     |   60.6%
+  GRI (Gr.Island)|   73.1%     |   73.0%     |   70.3%     |   72.4%     |   56.2%
+  HSI (Hastings) |   72.5%     |   71.8%     |   68.1%     |   72.2%     |   56.9%
+  LNK (Lincoln)  |   69.5%     |   72.6%     |   69.7%     |   71.7%     |   58.4%
+  OFK (Norfolk)  |   71.6%     |   74.1%     |   71.0%     |   74.4%     |   57.3%
+  OMA (Omaha)    |   70.3%     |   74.7%     |   69.6%     |   71.2%     |   59.1%
+
+  9 treatments x 5 blocks = 45 experimental units
+
+
+Missing Data:
+
+Any hourly observation missing either relative humidity or air temperature was
+dropped before analysis, leaving 120,462 valid records across all nine stations
+with every one of the 45 cells supported by at least 1,100 observations.
+
+
+Results:
+
+The RCBD model was fit in R as aov(mean_relh ~ station + temp_bin). The ANOVA
+table showed that the block effect (temperature bin) was highly significant
+(F = 18.654, p < 0.001), while the station (treatment) effect was not
+statistically significant (F = 1.265, p = 0.296). This means that after holding
+temperature constant across blocks, we cannot conclude that any station is
+meaningfully more or less humid than the others. The block doing its job so
+effectively is actually a good sign — it confirms that temperature was the
+dominant driver of humidity variation and that the design successfully removed
+that noise.
+
+A Tukey HSD post-hoc test was run on the station factor to examine all 36
+pairwise comparisons. None of the comparisons reached statistical significance
+at alpha = 0.05, with all adjusted p-values well above the threshold. While
+Scottsbluff (BFF) posted the lowest overall mean humidity at 60.2% and Norfolk
+(OFK) posted the highest at 69.7%, a nearly 10-point gap, these differences
+were not large enough to be declared statistically distinguishable from random
+variation given the spread in the data. Based on these results, no single station
+can be confidently recommended over another on the basis of relative humidity
+alone.
+
+
+Residual Diagnostics:
+
+The four diagnostic plots (Figure 4) show that the model is a reasonable fit.
+The Residuals vs Fitted plot is generally centered around zero with no strong
+pattern, supporting the linearity assumption, though observations 5 and 10 are
+flagged as mild outliers. The Q-Q plot shows the standardized residuals tracking
+the diagonal line closely through the middle with slight tail deviations,
+consistent with the Shapiro-Wilk result (p = 0.023) — a minor departure that is
+not severe enough to undermine the ANOVA conclusions. The Scale-Location plot
+shows a slight downward trend, suggesting residual variance decreases modestly at
+higher fitted values, but no serious heteroskedasticity. The Residuals vs Factor
+Levels plot shows residuals spread fairly evenly across all nine stations with no
+station showing a systematic pattern, which is reassuring that the model is not
+misfitting any particular location.
+
+
+Visualizations:
+
+The profile plot (Figure 1) shows mean relative humidity for each station across
+the five temperature blocks as a line chart, and the most striking feature is
+AIA (Alliance), whose line begins near the top in freezing conditions at 83.7%
+and falls all the way to 34.8% in hot conditions — a steeper drop than any other
+station. The bar chart (Figure 2) summarizes each station's overall mean
+humidity collapsed across all blocks, making it easy to see that Scottsbluff
+trails the field by a noticeable margin. The heatmap (Figure 3) displays all 45
+experimental unit values in a color-coded grid, where darker blue indicates
+higher humidity, and provides the clearest picture of how the humidity advantage
+of eastern stations grows more pronounced as temperatures rise.
+
+
+Block x Treatment Interaction:
+
+If there is a block by treatment interaction, it would mean that the humidity
+difference between stations is not consistent across temperature regimes — some
+stations might hold their humidity well in hot conditions while others collapse.
+Unfortunately, the classic one-observation-per-cell RCBD design does not leave
+any degrees of freedom for error once the interaction term is added, so a formal
+F-test cannot be computed. Looking at the profile plot, however, there is visual
+evidence of non-parallelism, particularly for AIA, whose line crosses those of
+the other stations as temperature rises. My recommendation to Thomas would be
+to interpret the station main effects with some caution and, if this distinction
+matters for the decision at hand, to collect replicated observations within each
+block so that the interaction can be formally tested.
+
+
+Conclusion:
+
+After blocking on temperature to remove the dominant confounding variable, we
+fail to reject the null hypothesis that mean relative humidity is equal across
+all nine stations (F = 1.265, p = 0.296), meaning there is not sufficient
+evidence to conclude that any station is significantly more or less humid than
+the others, though Scottsbluff consistently tracks drier than the rest of the
+state across every temperature regime.
